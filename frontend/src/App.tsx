@@ -325,20 +325,25 @@ export default function App() {
       // 자신의 하위로 드롭 방지
       if (isDescendant(data.tree, activeId, overId)) return;
 
+      const activeItem = findItem(data.tree, activeId);
       const overItem = findItem(data.tree, overId);
       const activeParent = findParentId(data.tree, activeId);
       const overParent = findParentId(data.tree, overId);
 
-      if (activeParent === overParent) {
-        // 같은 부모 → 순서 변경 (폴더끼리, 링크끼리 모두 포함)
+      const droppingLinkOntoFolder =
+        activeItem?.type === "link" && overItem?.type === "folder";
+
+      if (activeParent === overParent && !droppingLinkOntoFolder) {
+        // 같은 부모 → 순서 변경
+        // (단, 링크를 같은 부모의 폴더 위에 드롭하는 경우는 제외)
         save(reorderInParent(data.tree, activeId, overId));
       } else if (overItem?.type === "folder") {
-        // 다른 부모의 폴더 위에 드롭 → 그 폴더 안으로 이동
+        // 폴더 위에 드롭 → 그 폴더 안으로 이동
         const { tree: without, item } = extractItem(data.tree, activeId);
         if (!item) return;
         save(insertIntoFolder(without, overId, item));
       } else {
-        // 다른 부모의 링크 앞에 드롭 → 앞에 삽입
+        // 링크 앞에 드롭 → 앞에 삽입
         const { tree: without, item } = extractItem(data.tree, activeId);
         if (!item) return;
         save(insertBefore(without, overId, item));
