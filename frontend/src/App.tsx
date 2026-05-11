@@ -163,7 +163,6 @@ function insertIntoFolder(tree: BookmarkItem[], folderId: string, newItem: Bookm
 export default function App() {
   const { data, save } = useBookmarks();
   const [modal, setModal] = useState<ModalConfig | null>(null);
-  const [editMode, setEditMode] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
@@ -258,12 +257,14 @@ export default function App() {
       const activeId = active.id as string;
       const overId = over.id as string;
 
-      // 최상위 컬럼 재정렬 (편집 모드)
+      // 최상위 컬럼 재정렬
       const topIds = data.tree.filter((i) => i.type === "folder").map((i) => i.id);
-      if (editMode && topIds.includes(activeId) && topIds.includes(overId)) {
-        const oi = data.tree.findIndex((i) => i.id === activeId);
-        const ni = data.tree.findIndex((i) => i.id === overId);
-        save(arrayMove(data.tree, oi, ni));
+      if (topIds.includes(activeId)) {
+        if (topIds.includes(overId)) {
+          const oi = data.tree.findIndex((i) => i.id === activeId);
+          const ni = data.tree.findIndex((i) => i.id === overId);
+          save(arrayMove(data.tree, oi, ni));
+        }
         return;
       }
 
@@ -289,7 +290,7 @@ export default function App() {
         save(insertBefore(without, overId, item));
       }
     },
-    [data, editMode, save]
+    [data, save]
   );
 
   const folders = data.tree.filter((i) => i.type === "folder") as BookmarkFolder[];
@@ -306,15 +307,7 @@ export default function App() {
           <button onClick={handleExport} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">Export JSON</button>
           <button onClick={() => importRef.current?.click()} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">Import JSON</button>
           <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-          {editMode && (
-            <button onClick={() => setModal({ mode: "add-folder", parentId: null })} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">+ Folder</button>
-          )}
-          <button
-            onClick={() => setEditMode((v) => !v)}
-            className={`px-3 py-1 rounded-lg text-xs transition-colors ${editMode ? "bg-slate-800 text-white hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
-          >
-            {editMode ? "Done" : "Edit"}
-          </button>
+          <button onClick={() => setModal({ mode: "add-folder", parentId: null })} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">+ Column</button>
         </div>
       </div>
 
@@ -331,7 +324,6 @@ export default function App() {
               <FolderColumn
                 key={folder.id}
                 item={folder}
-                editMode={editMode}
                 onToggle={handleToggle}
                 onAddFolder={(parentId) => setModal({ mode: "add-folder", parentId })}
                 onAddLink={(parentId) => setModal({ mode: "add-link", parentId })}
