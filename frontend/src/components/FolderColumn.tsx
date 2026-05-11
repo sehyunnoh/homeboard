@@ -39,7 +39,7 @@ export function FolderColumn({ item, onToggle, onAddFolder, onAddLink, onEdit, o
           className="text-sm font-semibold text-slate-700 flex-1 min-w-0 text-left flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-slate-200 hover:text-slate-900 transition-colors"
           style={{ color: item.textColor, backgroundColor: item.bgColor }}
         >
-          <span className="text-xs text-slate-400">{item.isOpen ? "▾" : "▸"}</span>
+          <span className="text-lg text-slate-400">{item.isOpen ? "▾" : "▸"}</span>
           <span className="truncate">{item.name}</span>
         </button>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
