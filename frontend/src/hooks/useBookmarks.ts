@@ -20,5 +20,5 @@ export function useBookmarks() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   }, []);
 
-  return { data, loading: false, save };
+  return { data, save };
 }
