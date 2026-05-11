@@ -1,4 +1,4 @@
-import { useSortable } from "@dnd-kit/sortable";
+import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { BookmarkFolder, BookmarkItem, BookmarkLink } from "../types";
 import { FolderNode } from "./FolderNode";
@@ -55,60 +55,43 @@ export function FolderColumn({
         </button>
         {editMode && (
           <div className="flex gap-0.5">
-            <button
-              onClick={() => onAddFolder(item.id)}
-              title="Add Folder"
-              className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
-            >
-              📁
-            </button>
-            <button
-              onClick={() => onAddLink(item.id)}
-              title="Add Link"
-              className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
-            >
-              🔗
-            </button>
-            <button
-              onClick={() => onEdit(item)}
-              title="Edit"
-              className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
-            >
-              ✏️
-            </button>
-            <button
-              onClick={() => onDelete(item.id)}
-              title="Delete"
-              className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-red-500 text-xs"
-            >
-              🗑️
-            </button>
+            <button onClick={() => onAddFolder(item.id)} title="Add Folder" className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs">📁</button>
+            <button onClick={() => onAddLink(item.id)} title="Add Link" className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs">🔗</button>
+            <button onClick={() => onEdit(item)} title="Edit" className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs">✏️</button>
+            <button onClick={() => onDelete(item.id)} title="Delete" className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-red-500 text-xs">🗑️</button>
           </div>
         )}
       </div>
 
-      {item.isOpen && <div className="ml-4 mt-0.5 border-l border-slate-200 pl-2 flex flex-col gap-0.5">
-        {item.children.map((child) =>
-          child.type === "folder" ? (
-            <FolderNode
-              key={child.id}
-              item={child}
-              onToggle={onToggle}
-              onAddFolder={onAddFolder}
-              onAddLink={onAddLink}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ) : (
-            <LinkNode
-              key={child.id}
-              item={child as BookmarkLink}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          )
-        )}
-      </div>}
+      {item.isOpen && (
+        <div className="ml-4 mt-0.5 border-l border-slate-200 pl-2 flex flex-col gap-0.5">
+          <SortableContext
+            items={item.children.map((c) => c.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {item.children.map((child) =>
+              child.type === "folder" ? (
+                <FolderNode
+                  key={child.id}
+                  item={child}
+                  onToggle={onToggle}
+                  onAddFolder={onAddFolder}
+                  onAddLink={onAddLink}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ) : (
+                <LinkNode
+                  key={child.id}
+                  item={child as BookmarkLink}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              )
+            )}
+          </SortableContext>
+        </div>
+      )}
     </div>
   );
 }
