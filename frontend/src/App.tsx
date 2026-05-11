@@ -119,6 +119,13 @@ function setAllOpen(tree: BookmarkItem[], isOpen: boolean): BookmarkItem[] {
   });
 }
 
+function allOpen(tree: BookmarkItem[]): boolean {
+  return tree.every((item) => {
+    if (item.type !== "folder") return true;
+    return item.isOpen && allOpen(item.children);
+  });
+}
+
 function makeId() {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -349,8 +356,11 @@ export default function App() {
       <div className="flex items-center gap-3 mb-6 flex-wrap">
         <h1 className="text-2xl font-semibold text-slate-800">Homeboard</h1>
         <div className="flex gap-1 ml-auto items-center">
-          <IconButton icon={<ExpandIcon />} label="Expand All" onClick={() => save(setAllOpen(data.tree, true))} />
-          <IconButton icon={<CollapseIcon />} label="Collapse All" onClick={() => save(setAllOpen(data.tree, false))} />
+          <IconButton
+            icon={allOpen(data.tree) ? <CollapseIcon /> : <ExpandIcon />}
+            label={allOpen(data.tree) ? "Collapse All" : "Expand All"}
+            onClick={() => save(setAllOpen(data.tree, !allOpen(data.tree)))}
+          />
           <IconButton icon={<ExportIcon />} label="Export JSON" onClick={handleExport} />
           <IconButton icon={<ImportIcon />} label="Import JSON" onClick={() => importRef.current?.click()} />
           <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
