@@ -16,6 +16,53 @@ import { ItemModal } from "./components/ItemModal";
 import type { ModalConfig, ModalResult } from "./components/ItemModal";
 import type { BookmarkItem, BookmarkFolder, BookmarkLink } from "./types";
 
+// ── icon button ───────────────────────────────────────────────
+
+function IconButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+  return (
+    <div className="relative group/tip">
+      <button
+        onClick={onClick}
+        className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-300 hover:text-slate-800 transition-colors"
+      >
+        {icon}
+      </button>
+      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity z-50">
+        {label}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+      </div>
+    </div>
+  );
+}
+
+const ExpandIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M4 6L8 2L12 6M4 10L8 14L12 10" />
+  </svg>
+);
+const CollapseIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M4 2L8 6L12 2M4 14L8 10L12 14" />
+  </svg>
+);
+const ExportIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M8 3v7M5 7l3 3 3-3M3 13h10" />
+  </svg>
+);
+const ImportIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M8 13V6M5 9l3-3 3 3M3 3h10" />
+  </svg>
+);
+const PlusIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M8 3v10M3 8h10" />
+  </svg>
+);
+
+// ─────────────────────────────────────────────────────────────
+
 function toEditModal(item: BookmarkItem): ModalConfig {
   if (item.type === "folder") {
     return { mode: "edit-folder", id: item.id, name: item.name, textColor: item.textColor, bgColor: item.bgColor };
@@ -301,13 +348,13 @@ export default function App() {
     <div className="min-h-screen p-8">
       <div className="flex items-center gap-3 mb-6 flex-wrap">
         <h1 className="text-2xl font-semibold text-slate-800">Homeboard</h1>
-        <div className="flex gap-1 ml-auto">
-          <button onClick={() => save(setAllOpen(data.tree, true))} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">Expand All</button>
-          <button onClick={() => save(setAllOpen(data.tree, false))} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">Collapse All</button>
-          <button onClick={handleExport} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">Export JSON</button>
-          <button onClick={() => importRef.current?.click()} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">Import JSON</button>
+        <div className="flex gap-1 ml-auto items-center">
+          <IconButton icon={<ExpandIcon />} label="Expand All" onClick={() => save(setAllOpen(data.tree, true))} />
+          <IconButton icon={<CollapseIcon />} label="Collapse All" onClick={() => save(setAllOpen(data.tree, false))} />
+          <IconButton icon={<ExportIcon />} label="Export JSON" onClick={handleExport} />
+          <IconButton icon={<ImportIcon />} label="Import JSON" onClick={() => importRef.current?.click()} />
           <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-          <button onClick={() => setModal({ mode: "add-folder", parentId: null })} className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors">+ Column</button>
+          <IconButton icon={<PlusIcon />} label="Add Column" onClick={() => setModal({ mode: "add-folder", parentId: null })} />
         </div>
       </div>
 
