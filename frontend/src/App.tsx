@@ -229,7 +229,8 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "bookmarks.json";
+    const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    a.download = `bookmarks_${ts}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [data]);
