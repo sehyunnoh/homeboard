@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useEffect } from "react";
+import { useCallback, useState, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -78,19 +78,22 @@ function makeId() {
 // ── component ─────────────────────────────────────────────────
 
 export default function App() {
-  const { data, loading, save } = useBookmarks();
+  const { data, save } = useBookmarks();
   const [modal, setModal] = useState<ModalConfig | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [dataFilePath, setDataFilePath] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
-  useEffect(() => {
-    fetch("/api/info")
-      .then((r) => r.json())
-      .then((d) => setDataFilePath(d.dataFile));
-  }, []);
+  const handleExport = useCallback(() => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bookmarks.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [data]);
 
   const handleImport = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,16 +119,13 @@ export default function App() {
   );
 
   const handleToggle = useCallback(
-    (id: string) => {
-      if (!data) return;
-      save(toggleInTree(data.tree, id));
-    },
+    (id: string) => save(toggleInTree(data.tree, id)),
     [data, save]
   );
 
   const handleModalConfirm = useCallback(
     ({ name, url }: { name: string; url?: string }) => {
-      if (!data || !modal) return;
+      if (!modal) return;
       let nextTree = data.tree;
 
       if (modal.mode === "add-folder") {
@@ -153,17 +153,14 @@ export default function App() {
   );
 
   const handleDelete = useCallback(
-    (id: string) => {
-      if (!data) return;
-      save(deleteFromTree(data.tree, id));
-    },
+    (id: string) => save(deleteFromTree(data.tree, id)),
     [data, save]
   );
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      if (!over || active.id === over.id || !data) return;
+      if (!over || active.id === over.id) return;
       const oldIndex = data.tree.findIndex((i) => i.id === active.id);
       const newIndex = data.tree.findIndex((i) => i.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return;
@@ -171,16 +168,6 @@ export default function App() {
     },
     [data, save]
   );
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-slate-400">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!data) return null;
 
   const folders = data.tree.filter((i) => i.type === "folder") as BookmarkFolder[];
   const rootLinks = data.tree.filter((i) => i.type === "link") as BookmarkLink[];
@@ -190,29 +177,32 @@ export default function App() {
       {/* 헤더 */}
       <div className="flex items-center gap-3 mb-6 flex-wrap">
         <h1 className="text-2xl font-semibold text-slate-800">Homeboard</h1>
-        {dataFilePath && (
-          <span className="text-xs text-slate-400 font-mono">{dataFilePath}</span>
-        )}
         <div className="flex gap-1 ml-auto">
           <button
-            onClick={() => data && save(setAllOpen(data.tree, true))}
+            onClick={() => save(setAllOpen(data.tree, true))}
             className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
           >
             모두 펼치기
           </button>
           <button
-            onClick={() => data && save(setAllOpen(data.tree, false))}
+            onClick={() => save(setAllOpen(data.tree, false))}
             className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
           >
             모두 접기
           </button>
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleExport}
+            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+          >
+            JSON 내보내기
+          </button>
+          <button
+            onClick={() => importRef.current?.click()}
             className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
           >
             JSON 가져오기
           </button>
-          <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+          <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
           {editMode && (
             <button
               onClick={() => setModal({ mode: "add-folder", parentId: null })}
@@ -254,7 +244,7 @@ export default function App() {
         </SortableContext>
       </DndContext>
 
-      {/* 루트 링크 (폴더 밖 링크) */}
+      {/* 루트 링크 */}
       {rootLinks.length > 0 && (
         <div className="mt-6 flex flex-wrap gap-1">
           {rootLinks.map((link) => (

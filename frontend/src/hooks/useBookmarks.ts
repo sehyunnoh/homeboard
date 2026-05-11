@@ -1,30 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { BookmarkTree, BookmarkItem } from "../types";
 
-const API = "/api/bookmarks";
+const STORAGE_KEY = "homeboard";
+
+function load(): BookmarkTree {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { version: 1, tree: [] };
+}
 
 export function useBookmarks() {
-  const [data, setData] = useState<BookmarkTree | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(API)
-      .then((r) => r.json())
-      .then((d) => {
-        setData(d);
-        setLoading(false);
-      });
-  }, []);
+  const [data, setData] = useState<BookmarkTree>(load);
 
   const save = useCallback((tree: BookmarkItem[]) => {
     const next: BookmarkTree = { version: 1, tree };
     setData(next);
-    fetch(API, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next),
-    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   }, []);
 
-  return { data, loading, save };
+  return { data, loading: false, save };
 }
