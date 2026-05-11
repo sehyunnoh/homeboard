@@ -24,7 +24,7 @@ export function FolderColumn({ item, onToggle, onAddFolder, onAddLink, onEdit, o
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex flex-col">
+    <div ref={setNodeRef} style={style} className="flex flex-col px-3 border-r border-slate-200 last:border-r-0">
       <div className="flex items-center gap-1 mb-2 group">
         <span
           {...attributes}

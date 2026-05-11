@@ -381,7 +381,7 @@ export default function App() {
         onDragCancel={() => setActiveId(null)}
       >
         <SortableContext items={folders.map((f) => f.id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3">
             {folders.map((folder) => (
               <FolderColumn
                 key={folder.id}
