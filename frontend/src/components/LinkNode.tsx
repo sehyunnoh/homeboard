@@ -28,14 +28,14 @@ export function LinkNode({ item, onEdit, onDelete }: Props) {
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity pr-1">
         <button
           onClick={() => onEdit(item)}
-          title="수정"
+          title="Edit"
           className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
         >
           ✏️
         </button>
         <button
           onClick={() => onDelete(item.id)}
-          title="삭제"
+          title="Delete"
           className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-red-500 text-xs"
         >
           🗑️

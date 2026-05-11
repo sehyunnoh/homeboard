@@ -36,9 +36,9 @@ export function ItemModal({ config, onConfirm, onClose }: Props) {
   };
 
   const title =
-    config.mode === "add-folder" ? "폴더 추가" :
-    config.mode === "add-link" ? "링크 추가" :
-    config.mode === "edit-folder" ? "폴더 수정" : "링크 수정";
+    config.mode === "add-folder" ? "Add Folder" :
+    config.mode === "add-link" ? "Add Link" :
+    config.mode === "edit-folder" ? "Edit Folder" : "Edit Link";
 
   return (
     <div
@@ -49,12 +49,12 @@ export function ItemModal({ config, onConfirm, onClose }: Props) {
         <h2 className="text-base font-semibold text-slate-800 mb-4">{title}</h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">이름</label>
+            <label className="text-xs text-slate-500 mb-1 block">Name</label>
             <input
               ref={nameRef}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="이름 입력"
+              placeholder="Enter name"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-400"
             />
           </div>
@@ -76,13 +76,13 @@ export function ItemModal({ config, onConfirm, onClose }: Props) {
               onClick={onClose}
               className="px-4 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100 transition-colors"
             >
-              취소
+              Cancel
             </button>
             <button
               type="submit"
               className="px-4 py-1.5 rounded-lg text-sm bg-slate-800 text-white hover:bg-slate-700 transition-colors"
             >
-              {isEdit ? "저장" : "추가"}
+              {isEdit ? "Save" : "Add"}
             </button>
           </div>
         </form>

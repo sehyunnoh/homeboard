@@ -182,25 +182,25 @@ export default function App() {
             onClick={() => save(setAllOpen(data.tree, true))}
             className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
           >
-            모두 펼치기
+            Expand All
           </button>
           <button
             onClick={() => save(setAllOpen(data.tree, false))}
             className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
           >
-            모두 접기
+            Collapse All
           </button>
           <button
             onClick={handleExport}
             className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
           >
-            JSON 내보내기
+            Export JSON
           </button>
           <button
             onClick={() => importRef.current?.click()}
             className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
           >
-            JSON 가져오기
+            Import JSON
           </button>
           <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
           {editMode && (
@@ -208,7 +208,7 @@ export default function App() {
               onClick={() => setModal({ mode: "add-folder", parentId: null })}
               className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
             >
-              + 폴더
+              + Folder
             </button>
           )}
           <button
@@ -219,7 +219,7 @@ export default function App() {
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            {editMode ? "편집 완료" : "편집"}
+            {editMode ? "Done" : "Edit"}
           </button>
         </div>
       </div>

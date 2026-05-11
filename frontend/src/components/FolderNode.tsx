@@ -24,28 +24,28 @@ export function FolderNode({ item, onToggle, onAddFolder, onAddLink, onEdit, onD
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity pr-1">
           <button
             onClick={() => onAddFolder(item.id)}
-            title="폴더 추가"
+            title="Add Folder"
             className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
           >
             📁
           </button>
           <button
             onClick={() => onAddLink(item.id)}
-            title="링크 추가"
+            title="Add Link"
             className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
           >
             🔗
           </button>
           <button
             onClick={() => onEdit(item)}
-            title="수정"
+            title="Edit"
             className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
           >
             ✏️
           </button>
           <button
             onClick={() => onDelete(item.id)}
-            title="삭제"
+            title="Delete"
             className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-red-500 text-xs"
           >
             🗑️

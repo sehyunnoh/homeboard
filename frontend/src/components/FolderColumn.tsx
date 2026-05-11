@@ -40,7 +40,7 @@ export function FolderColumn({
             {...attributes}
             {...listeners}
             className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 select-none px-1"
-            title="드래그하여 이동"
+            title="Drag to reorder"
           >
             ⠿
           </span>
@@ -56,28 +56,28 @@ export function FolderColumn({
           <div className="flex gap-0.5">
             <button
               onClick={() => onAddFolder(item.id)}
-              title="폴더 추가"
+              title="Add Folder"
               className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
             >
               📁
             </button>
             <button
               onClick={() => onAddLink(item.id)}
-              title="링크 추가"
+              title="Add Link"
               className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
             >
               🔗
             </button>
             <button
               onClick={() => onEdit(item)}
-              title="수정"
+              title="Edit"
               className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs"
             >
               ✏️
             </button>
             <button
               onClick={() => onDelete(item.id)}
-              title="삭제"
+              title="Delete"
               className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-red-500 text-xs"
             >
               🗑️
