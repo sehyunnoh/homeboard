@@ -13,7 +13,8 @@ export function LinkNode({ item, onEdit, onDelete }: Props) {
         href={item.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 flex-1 min-w-0 px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors text-sm"
+        className="flex items-center gap-2 flex-1 min-w-0 px-3 py-1.5 rounded-md text-slate-600 hover:bg-blue-50 hover:text-blue-700 transition-colors text-sm"
+        style={{ color: item.textColor, backgroundColor: item.bgColor }}
       >
         <img
           src={item.favicon ?? `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}`}

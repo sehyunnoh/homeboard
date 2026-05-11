@@ -4,6 +4,8 @@ export type BookmarkLink = {
   name: string;
   url: string;
   favicon?: string;
+  textColor?: string;
+  bgColor?: string;
 };
 
 export type BookmarkFolder = {
@@ -12,6 +14,8 @@ export type BookmarkFolder = {
   name: string;
   isOpen: boolean;
   children: BookmarkItem[];
+  textColor?: string;
+  bgColor?: string;
 };
 
 export type BookmarkItem = BookmarkFolder | BookmarkLink;

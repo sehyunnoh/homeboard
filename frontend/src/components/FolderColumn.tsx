@@ -47,7 +47,8 @@ export function FolderColumn({
         )}
         <button
           onClick={() => !editMode && onToggle(item.id)}
-          className="text-sm font-semibold text-slate-700 flex-1 text-left flex items-center gap-1.5 hover:text-slate-900 transition-colors"
+          className="text-sm font-semibold text-slate-700 flex-1 text-left flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-slate-200 hover:text-slate-900 transition-colors"
+          style={{ color: item.textColor, backgroundColor: item.bgColor }}
         >
           <span className="text-xs text-slate-400">{item.isOpen ? "▾" : "▸"}</span>
           {item.name}
@@ -86,7 +87,7 @@ export function FolderColumn({
         )}
       </div>
 
-      {item.isOpen && <div className="flex flex-col gap-0.5">
+      {item.isOpen && <div className="ml-4 mt-0.5 border-l border-slate-200 pl-2 flex flex-col gap-0.5">
         {item.children.map((child) =>
           child.type === "folder" ? (
             <FolderNode

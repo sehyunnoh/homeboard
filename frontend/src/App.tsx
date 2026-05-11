@@ -12,14 +12,14 @@ import { useBookmarks } from "./hooks/useBookmarks";
 import { FolderColumn } from "./components/FolderColumn";
 import { LinkNode } from "./components/LinkNode";
 import { ItemModal } from "./components/ItemModal";
-import type { ModalConfig } from "./components/ItemModal";
+import type { ModalConfig, ModalResult } from "./components/ItemModal";
 import type { BookmarkItem, BookmarkFolder, BookmarkLink } from "./types";
 
 function toEditModal(item: BookmarkItem): ModalConfig {
   if (item.type === "folder") {
-    return { mode: "edit-folder", id: item.id, name: item.name };
+    return { mode: "edit-folder", id: item.id, name: item.name, textColor: item.textColor, bgColor: item.bgColor };
   }
-  return { mode: "edit-link", id: item.id, name: item.name, url: (item as BookmarkLink).url };
+  return { mode: "edit-link", id: item.id, name: item.name, url: (item as BookmarkLink).url, textColor: item.textColor, bgColor: item.bgColor };
 }
 
 // ── tree helpers ──────────────────────────────────────────────
@@ -124,25 +124,27 @@ export default function App() {
   );
 
   const handleModalConfirm = useCallback(
-    ({ name, url }: { name: string; url?: string }) => {
+    ({ name, url, textColor, bgColor }: ModalResult) => {
       if (!modal) return;
       let nextTree = data.tree;
 
       if (modal.mode === "add-folder") {
         nextTree = addToTree(data.tree, modal.parentId, {
-          id: `folder-${makeId()}`, type: "folder", name, isOpen: true, children: [],
+          id: `folder-${makeId()}`, type: "folder", name, isOpen: true, children: [], textColor, bgColor,
         });
       } else if (modal.mode === "add-link") {
         nextTree = addToTree(data.tree, modal.parentId, {
           id: `link-${makeId()}`, type: "link", name, url: url!,
           favicon: `https://www.google.com/s2/favicons?domain=${new URL(url!).hostname}`,
+          textColor, bgColor,
         });
       } else if (modal.mode === "edit-folder") {
-        nextTree = updateInTree(data.tree, modal.id, { name });
+        nextTree = updateInTree(data.tree, modal.id, { name, textColor, bgColor });
       } else if (modal.mode === "edit-link") {
         nextTree = updateInTree(data.tree, modal.id, {
           name, url: url!,
           favicon: `https://www.google.com/s2/favicons?domain=${new URL(url!).hostname}`,
+          textColor, bgColor,
         });
       }
 
@@ -180,25 +182,25 @@ export default function App() {
         <div className="flex gap-1 ml-auto">
           <button
             onClick={() => save(setAllOpen(data.tree, true))}
-            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors"
           >
             Expand All
           </button>
           <button
             onClick={() => save(setAllOpen(data.tree, false))}
-            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors"
           >
             Collapse All
           </button>
           <button
             onClick={handleExport}
-            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors"
           >
             Export JSON
           </button>
           <button
             onClick={() => importRef.current?.click()}
-            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+            className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors"
           >
             Import JSON
           </button>
@@ -206,7 +208,7 @@ export default function App() {
           {editMode && (
             <button
               onClick={() => setModal({ mode: "add-folder", parentId: null })}
-              className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+              className="px-3 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 hover:bg-slate-300 hover:text-slate-800 transition-colors"
             >
               + Folder
             </button>
