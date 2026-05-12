@@ -382,17 +382,23 @@ export default function App() {
         onDragCancel={() => setActiveId(null)}
       >
         <SortableContext items={folders.map((f) => f.id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-3">
-            {folders.map((folder) => (
-              <FolderColumn
-                key={folder.id}
-                item={folder}
-                onToggle={handleToggle}
-                onAddFolder={(parentId) => setModal({ mode: "add-folder", parentId })}
-                onAddLink={(parentId) => setModal({ mode: "add-link", parentId })}
-                onEdit={(i) => setModal(toEditModal(i))}
-                onDelete={handleDelete}
-              />
+          <div className="flex">
+            {[0, 1, 2].map((colIdx) => (
+              <div key={colIdx} className="flex-1 min-w-0 flex flex-col px-3 border-r border-slate-200 last:border-r-0">
+                {folders
+                  .filter((_, i) => i % 3 === colIdx)
+                  .map((folder) => (
+                    <FolderColumn
+                      key={folder.id}
+                      item={folder}
+                      onToggle={handleToggle}
+                      onAddFolder={(parentId) => setModal({ mode: "add-folder", parentId })}
+                      onAddLink={(parentId) => setModal({ mode: "add-link", parentId })}
+                      onEdit={(i) => setModal(toEditModal(i))}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+              </div>
             ))}
           </div>
         </SortableContext>
