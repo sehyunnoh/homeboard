@@ -6,6 +6,8 @@ export type BookmarkLink = {
   favicon?: string;
   textColor?: string;
   bgColor?: string;
+  fontWeight?: string;
+  fontSize?: string;
 };
 
 export type BookmarkFolder = {
@@ -16,6 +18,8 @@ export type BookmarkFolder = {
   children: BookmarkItem[];
   textColor?: string;
   bgColor?: string;
+  fontWeight?: string;
+  fontSize?: string;
 };
 
 export type BookmarkItem = BookmarkFolder | BookmarkLink;

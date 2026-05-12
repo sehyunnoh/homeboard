@@ -65,9 +65,9 @@ const PlusIcon = () => (
 
 function toEditModal(item: BookmarkItem): ModalConfig {
   if (item.type === "folder") {
-    return { mode: "edit-folder", id: item.id, name: item.name, textColor: item.textColor, bgColor: item.bgColor };
+    return { mode: "edit-folder", id: item.id, name: item.name, textColor: item.textColor, bgColor: item.bgColor, fontWeight: item.fontWeight, fontSize: item.fontSize };
   }
-  return { mode: "edit-link", id: item.id, name: item.name, url: (item as BookmarkLink).url, textColor: item.textColor, bgColor: item.bgColor };
+  return { mode: "edit-link", id: item.id, name: item.name, url: (item as BookmarkLink).url, textColor: item.textColor, bgColor: item.bgColor, fontWeight: item.fontWeight, fontSize: item.fontSize };
 }
 
 // ── tree helpers ──────────────────────────────────────────────
@@ -264,27 +264,27 @@ export default function App() {
   );
 
   const handleModalConfirm = useCallback(
-    ({ name, url, textColor, bgColor }: ModalResult) => {
+    ({ name, url, textColor, bgColor, fontWeight, fontSize }: ModalResult) => {
       if (!modal) return;
       let nextTree = data.tree;
 
       if (modal.mode === "add-folder") {
         nextTree = addToTree(data.tree, modal.parentId, {
-          id: `folder-${makeId()}`, type: "folder", name, isOpen: true, children: [], textColor, bgColor,
+          id: `folder-${makeId()}`, type: "folder", name, isOpen: true, children: [], textColor, bgColor, fontWeight, fontSize,
         });
       } else if (modal.mode === "add-link") {
         nextTree = addToTree(data.tree, modal.parentId, {
           id: `link-${makeId()}`, type: "link", name, url: url!,
           favicon: `https://www.google.com/s2/favicons?domain=${new URL(url!).hostname}`,
-          textColor, bgColor,
+          textColor, bgColor, fontWeight, fontSize,
         });
       } else if (modal.mode === "edit-folder") {
-        nextTree = updateInTree(data.tree, modal.id, { name, textColor, bgColor });
+        nextTree = updateInTree(data.tree, modal.id, { name, textColor, bgColor, fontWeight, fontSize });
       } else if (modal.mode === "edit-link") {
         nextTree = updateInTree(data.tree, modal.id, {
           name, url: url!,
           favicon: `https://www.google.com/s2/favicons?domain=${new URL(url!).hostname}`,
-          textColor, bgColor,
+          textColor, bgColor, fontWeight, fontSize,
         });
       }
 

@@ -37,7 +37,7 @@ export function FolderColumn({ item, onToggle, onAddFolder, onAddLink, onEdit, o
         <button
           onClick={() => onToggle(item.id)}
           className="cursor-pointer text-sm font-semibold text-slate-700 flex-1 min-w-0 text-left flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-slate-200 hover:text-slate-900 transition-colors"
-          style={{ color: item.textColor, backgroundColor: item.bgColor }}
+          style={{ color: item.textColor, backgroundColor: item.bgColor, fontWeight: item.fontWeight ?? "bold", fontSize: item.fontSize }}
         >
           <span className="text-lg text-slate-400">{item.isOpen ? "▾" : "▸"}</span>
           <span className="truncate">{item.name}</span>

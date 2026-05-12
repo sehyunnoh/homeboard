@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 
 export type ModalConfig =
-  | { mode: "add-folder"; parentId: string | null }
-  | { mode: "add-link"; parentId: string | null }
-  | { mode: "edit-folder"; id: string; name: string; textColor?: string; bgColor?: string }
-  | { mode: "edit-link"; id: string; name: string; url: string; textColor?: string; bgColor?: string };
+  | { mode: "add-folder"; parentId: string | null; fontWeight?: string; fontSize?: string }
+  | { mode: "add-link"; parentId: string | null; fontWeight?: string; fontSize?: string }
+  | { mode: "edit-folder"; id: string; name: string; textColor?: string; bgColor?: string; fontWeight?: string; fontSize?: string }
+  | { mode: "edit-link"; id: string; name: string; url: string; textColor?: string; bgColor?: string; fontWeight?: string; fontSize?: string };
 
 export type ModalResult = {
   name: string;
   url?: string;
   textColor?: string;
   bgColor?: string;
+  fontWeight?: string;
+  fontSize?: string;
 };
 
 type Props = {
@@ -20,30 +22,34 @@ type Props = {
 };
 
 const TEXT_PRESETS = [
-  "#1e293b", // slate-800 (default)
-  "#ef4444", // red
-  "#f97316", // orange
-  "#eab308", // yellow
-  "#22c55e", // green
-  "#3b82f6", // blue
-  "#a855f7", // purple
-  "#ec4899", // pink
-  "#64748b", // gray
-  "#ffffff", // white
+  "#1e293b",
+  "#ef4444",
+  "#f97316",
+  "#eab308",
+  "#22c55e",
+  "#3b82f6",
+  "#a855f7",
+  "#ec4899",
+  "#64748b",
+  "#ffffff",
 ];
 
 const BG_PRESETS = [
-  "#fef2f2", // red-50
-  "#fff7ed", // orange-50
-  "#fefce8", // yellow-50
-  "#f0fdf4", // green-50
-  "#eff6ff", // blue-50
-  "#faf5ff", // purple-50
-  "#fdf2f8", // pink-50
-  "#f1f5f9", // slate-100
-  "#1e293b", // dark
-  "#000000", // black
+  "#fef2f2",
+  "#fff7ed",
+  "#fefce8",
+  "#f0fdf4",
+  "#eff6ff",
+  "#faf5ff",
+  "#fdf2f8",
+  "#f1f5f9",
+  "#1e293b",
+  "#000000",
 ];
+
+const MIN_SIZE = 10;
+const MAX_SIZE = 28;
+const DEFAULT_SIZE = 14;
 
 function ColorField({
   label,
@@ -63,7 +69,6 @@ function ColorField({
     <div>
       <span className="text-xs text-slate-500 mb-1.5 block">{label}</span>
       <div className="flex flex-wrap gap-1.5 items-center">
-        {/* None */}
         <button
           type="button"
           onClick={() => onChange("")}
@@ -74,8 +79,6 @@ function ColorField({
         >
           <span className="text-[10px] leading-none">✕</span>
         </button>
-
-        {/* Presets */}
         {presets.map((color) => (
           <button
             key={color}
@@ -90,8 +93,6 @@ function ColorField({
             style={{ backgroundColor: color }}
           />
         ))}
-
-        {/* Custom */}
         <label
           title="Custom color"
           className={`w-6 h-6 rounded-full border-2 cursor-pointer flex items-center justify-center overflow-hidden transition-all ${
@@ -104,9 +105,7 @@ function ColorField({
           {!isCustom && (
             <span
               className="w-full h-full rounded-full"
-              style={{
-                background: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)",
-              }}
+              style={{ background: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)" }}
             />
           )}
           <input
@@ -130,6 +129,16 @@ export function ItemModal({ config, onConfirm, onClose }: Props) {
   const [url, setUrl] = useState(config.mode === "edit-link" ? config.url : "");
   const [textColor, setTextColor] = useState((config as { textColor?: string }).textColor ?? "");
   const [bgColor, setBgColor] = useState((config as { bgColor?: string }).bgColor ?? "");
+  const [fontWeight, setFontWeight] = useState(config.fontWeight ?? "bold");
+  const [fontSize, setFontSize] = useState(config.fontSize ?? `${DEFAULT_SIZE}px`);
+
+  const isBold = fontWeight === "bold";
+  const fontSizeNum = Math.min(MAX_SIZE, Math.max(MIN_SIZE, parseInt(fontSize) || DEFAULT_SIZE));
+
+  const handleFontSizeNum = (val: number) => {
+    const clamped = Math.min(MAX_SIZE, Math.max(MIN_SIZE, val));
+    setFontSize(`${clamped}px`);
+  };
 
   const nameRef = useRef<HTMLInputElement>(null);
   useEffect(() => { nameRef.current?.focus(); }, []);
@@ -142,6 +151,8 @@ export function ItemModal({ config, onConfirm, onClose }: Props) {
       url: isLink ? url.trim() : undefined,
       textColor: textColor || undefined,
       bgColor: bgColor || undefined,
+      fontWeight: fontWeight || undefined,
+      fontSize: fontSize || undefined,
     });
   };
 
@@ -180,6 +191,52 @@ export function ItemModal({ config, onConfirm, onClose }: Props) {
               />
             </div>
           )}
+
+          {/* Text style */}
+          <div className="border-t border-slate-100 pt-3 flex flex-col gap-2.5">
+            <span className="text-xs text-slate-500">Text style</span>
+
+            {/* Bold toggle */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 w-16">Weight</span>
+              <button
+                type="button"
+                onClick={() => setFontWeight(isBold ? "normal" : "bold")}
+                className={`w-7 h-7 rounded border-2 text-sm transition-all font-bold ${
+                  isBold
+                    ? "border-slate-600 bg-slate-800 text-white"
+                    : "border-slate-200 text-slate-500 hover:border-slate-400"
+                }`}
+              >
+                B
+              </button>
+            </div>
+
+            {/* Font size: slider + number input */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 w-16">Size</span>
+              <input
+                type="range"
+                min={MIN_SIZE}
+                max={MAX_SIZE}
+                value={fontSizeNum}
+                onChange={(e) => handleFontSizeNum(Number(e.target.value))}
+                className="flex-1 accent-slate-700"
+              />
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min={MIN_SIZE}
+                  max={MAX_SIZE}
+                  value={fontSizeNum}
+                  onChange={(e) => handleFontSizeNum(Number(e.target.value))}
+                  className="w-12 border border-slate-200 rounded px-2 py-0.5 text-sm text-center outline-none focus:border-slate-400"
+                />
+                <span className="text-xs text-slate-400">px</span>
+              </div>
+            </div>
+          </div>
+
           <div className="border-t border-slate-100 pt-3 flex flex-col gap-3">
             <ColorField label="Text color" presets={TEXT_PRESETS} value={textColor} onChange={setTextColor} />
             <ColorField label="Background" presets={BG_PRESETS} value={bgColor} onChange={setBgColor} />
