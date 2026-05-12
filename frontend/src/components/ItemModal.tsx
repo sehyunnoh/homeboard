@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
 export type ModalConfig =
-  | { mode: "add-folder"; parentId: string | null; fontWeight?: string; fontSize?: string }
-  | { mode: "add-link"; parentId: string | null; fontWeight?: string; fontSize?: string }
+  | { mode: "add-folder"; parentId: string | null; textColor?: string; bgColor?: string; fontWeight?: string; fontSize?: string }
+  | { mode: "add-link"; parentId: string | null; textColor?: string; bgColor?: string; fontWeight?: string; fontSize?: string }
   | { mode: "edit-folder"; id: string; name: string; textColor?: string; bgColor?: string; fontWeight?: string; fontSize?: string }
   | { mode: "edit-link"; id: string; name: string; url: string; textColor?: string; bgColor?: string; fontWeight?: string; fontSize?: string };
 

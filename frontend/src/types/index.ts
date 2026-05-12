@@ -20,6 +20,7 @@ export type BookmarkFolder = {
   bgColor?: string;
   fontWeight?: string;
   fontSize?: string;
+  pinned?: boolean;
 };
 
 export type BookmarkItem = BookmarkFolder | BookmarkLink;

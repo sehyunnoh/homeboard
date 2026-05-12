@@ -130,6 +130,16 @@ function makeId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+const FOLDER_BG_PALETTE = [
+  "#fef2f2", "#fff7ed", "#fefce8", "#f0fdf4",
+  "#eff6ff", "#faf5ff", "#fdf2f8", "#f1f5f9",
+  "#ecfdf5", "#fef9c3", "#e0f2fe", "#fce7f3",
+];
+
+function randomFolderBg() {
+  return FOLDER_BG_PALETTE[Math.floor(Math.random() * FOLDER_BG_PALETTE.length)];
+}
+
 // ── DnD helpers ───────────────────────────────────────────────
 
 function findItem(tree: BookmarkItem[], id: string): BookmarkItem | null {
@@ -299,6 +309,15 @@ export default function App() {
     [data, save]
   );
 
+  const handlePin = useCallback(
+    (id: string) => {
+      const item = findItem(data.tree, id);
+      if (!item || item.type !== "folder") return;
+      save(updateInTree(data.tree, id, { pinned: !item.pinned }));
+    },
+    [data, save]
+  );
+
   const handleDragStart = useCallback(({ active }: DragStartEvent) => {
     setActiveId(active.id as string);
   }, []);
@@ -312,10 +331,12 @@ export default function App() {
       const activeId = active.id as string;
       const overId = over.id as string;
 
-      // 최상위 컬럼 재정렬
+      // 최상위 컬럼 재정렬 (핀 고정된 컬럼은 제외)
       const topIds = data.tree.filter((i) => i.type === "folder").map((i) => i.id);
       if (topIds.includes(activeId)) {
-        if (topIds.includes(overId)) {
+        const activeFolder = findItem(data.tree, activeId) as BookmarkFolder;
+        const overFolder = findItem(data.tree, overId) as BookmarkFolder;
+        if (topIds.includes(overId) && !activeFolder?.pinned && !overFolder?.pinned) {
           const oi = data.tree.findIndex((i) => i.id === activeId);
           const ni = data.tree.findIndex((i) => i.id === overId);
           save(arrayMove(data.tree, oi, ni));
@@ -370,7 +391,7 @@ export default function App() {
           <IconButton icon={<ExportIcon />} label="Export JSON" onClick={handleExport} />
           <IconButton icon={<ImportIcon />} label="Import JSON" onClick={() => importRef.current?.click()} />
           <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-          <IconButton icon={<PlusIcon />} label="Add Column" onClick={() => setModal({ mode: "add-folder", parentId: null })} />
+          <IconButton icon={<PlusIcon />} label="Add Column" onClick={() => setModal({ mode: "add-folder", parentId: null, bgColor: randomFolderBg() })} />
         </div>
       </div>
 
@@ -392,10 +413,11 @@ export default function App() {
                       key={folder.id}
                       item={folder}
                       onToggle={handleToggle}
-                      onAddFolder={(parentId) => setModal({ mode: "add-folder", parentId })}
+                      onAddFolder={(parentId) => setModal({ mode: "add-folder", parentId, bgColor: randomFolderBg() })}
                       onAddLink={(parentId) => setModal({ mode: "add-link", parentId })}
                       onEdit={(i) => setModal(toEditModal(i))}
                       onDelete={handleDelete}
+                      onPin={handlePin}
                     />
                   ))}
               </div>
