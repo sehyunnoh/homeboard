@@ -23,12 +23,12 @@ export function ConfirmDeleteModal({ name, isFolder, onConfirm, onClose }: Props
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
-        <h2 className="text-base font-semibold text-slate-800 mb-2">삭제</h2>
+        <h2 className="text-base font-semibold text-slate-800 mb-2">Delete</h2>
         <p className="text-sm text-slate-600 break-words">
-          "{name}"을(를) 정말 삭제할까요?
+          Are you sure you want to delete "{name}"?
         </p>
         {isFolder && (
-          <p className="text-xs text-red-500 mt-1">폴더 안의 모든 항목도 함께 삭제됩니다.</p>
+          <p className="text-xs text-red-500 mt-1">Everything inside this folder will be deleted too.</p>
         )}
         <div className="flex justify-end gap-2 mt-5">
           <button
@@ -36,13 +36,13 @@ export function ConfirmDeleteModal({ name, isFolder, onConfirm, onClose }: Props
             onClick={onClose}
             className="px-3 py-1.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100"
           >
-            취소
+            Cancel
           </button>
           <button
             onClick={onConfirm}
             className="px-3 py-1.5 rounded-lg text-sm text-white bg-red-500 hover:bg-red-600"
           >
-            삭제
+            Delete
           </button>
         </div>
       </div>

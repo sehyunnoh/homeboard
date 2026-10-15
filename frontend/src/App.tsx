@@ -16,6 +16,8 @@ import { FolderColumn } from "./components/FolderColumn";
 import { LinkNode } from "./components/LinkNode";
 import { ItemModal } from "./components/ItemModal";
 import { ConfirmDeleteModal } from "./components/ConfirmDeleteModal";
+import { SettingsModal } from "./components/SettingsModal";
+import { useBackup } from "./hooks/useBackup";
 import type { ModalConfig, ModalResult } from "./components/ItemModal";
 import type { BookmarkItem, BookmarkFolder, BookmarkLink } from "./types";
 import { COLUMN_COUNT, lightestColumn, parseColumnDropId } from "./utils/columns";
@@ -57,6 +59,12 @@ const ExportIcon = () => (
 const ImportIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
     <path d="M8 13V6M5 9l3-3 3 3M3 3h10" />
+  </svg>
+);
+const SettingsIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </svg>
 );
 const PlusIcon = () => (
@@ -239,6 +247,8 @@ function insertIntoFolder(tree: BookmarkItem[], folderId: string, newItem: Bookm
 
 export default function App() {
   const { data, save } = useBookmarks();
+  const backup = useBackup(data);
+  const [showSettings, setShowSettings] = useState(false);
   const [modal, setModal] = useState<ModalConfig | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<number | null>(null);
@@ -269,12 +279,12 @@ export default function App() {
         try {
           const parsed = JSON.parse(ev.target?.result as string);
           if (!parsed.version || !Array.isArray(parsed.tree)) {
-            alert("올바른 bookmarks.json 형식이 아닙니다.");
+            alert("This is not a valid bookmarks.json file.");
             return;
           }
           save(parsed.tree);
         } catch {
-          alert("JSON 파싱에 실패했습니다.");
+          alert("Failed to parse the JSON file.");
         }
         e.target.value = "";
       };
@@ -466,8 +476,23 @@ export default function App() {
           <IconButton icon={<ImportIcon />} label="Import JSON" onClick={() => importRef.current?.click()} />
           <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
           <IconButton icon={<PlusIcon />} label="Add Column" onClick={() => setModal({ mode: "add-folder", parentId: null, bgColor: randomFolderBg() })} />
+          <IconButton icon={<SettingsIcon />} label="Settings" onClick={() => setShowSettings(true)} />
         </div>
       </div>
+
+      {backup.needsAction && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-sm text-amber-900">
+          <span>It's time to back up your bookmarks. Allow folder access and save a backup?</span>
+          <button
+            onClick={backup.backupNow}
+            disabled={backup.busy}
+            className="ml-auto px-3 py-1 rounded-md bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
+          >
+            {backup.busy ? "Backing up…" : "Back up now"}
+          </button>
+          <button onClick={backup.dismissNeedsAction} className="text-amber-700 hover:text-amber-900">Later</button>
+        </div>
+      )}
 
       <DndContext
         sensors={sensors}
@@ -530,6 +555,8 @@ export default function App() {
       {modal && (
         <ItemModal config={modal} onConfirm={handleModalConfirm} onClose={() => setModal(null)} />
       )}
+
+      {showSettings && <SettingsModal backup={backup} onClose={() => setShowSettings(false)} />}
 
       {deleteTarget && (
         <ConfirmDeleteModal

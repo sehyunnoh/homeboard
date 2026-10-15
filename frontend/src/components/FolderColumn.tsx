@@ -39,14 +39,14 @@ export function FolderColumn({ item, onToggle, onAddFolder, onAddLink, onEdit, o
       >
         {/* 드래그 핸들: 항상 표시. 핀 고정 시 자물쇠 */}
         {item.pinned ? (
-          <span className="select-none px-1 text-xs text-slate-300" title="고정됨 — 핀을 해제하면 이동할 수 있어요">
+          <span className="select-none px-1 text-xs text-slate-300" title="Pinned — unpin to move">
             🔒
           </span>
         ) : (
           <span
             {...attributes}
             className="select-none px-1 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing"
-            title="드래그해서 순서 변경"
+            title="Drag to reorder"
           >
             ⠿
           </span>
