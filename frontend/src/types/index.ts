@@ -21,6 +21,8 @@ export type BookmarkFolder = {
   fontWeight?: string;
   fontSize?: string;
   pinned?: boolean;
+  /** 최상위 폴더가 속한 열 (0 ~ COLUMN_COUNT-1). 열 안의 순서는 tree 배열 순서를 따른다. */
+  column?: number;
 };
 
 export type BookmarkItem = BookmarkFolder | BookmarkLink;

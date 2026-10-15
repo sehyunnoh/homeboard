@@ -6,15 +6,19 @@ import {
   useSensor,
   useSensors,
   DragOverlay,
+  pointerWithin,
 } from "@dnd-kit/core";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
-import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
+import type { CollisionDetection, DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { useBookmarks } from "./hooks/useBookmarks";
+import { BoardColumn } from "./components/BoardColumn";
 import { FolderColumn } from "./components/FolderColumn";
 import { LinkNode } from "./components/LinkNode";
 import { ItemModal } from "./components/ItemModal";
+import { ConfirmDeleteModal } from "./components/ConfirmDeleteModal";
 import type { ModalConfig, ModalResult } from "./components/ItemModal";
 import type { BookmarkItem, BookmarkFolder, BookmarkLink } from "./types";
+import { COLUMN_COUNT, lightestColumn, parseColumnDropId } from "./utils/columns";
 
 // ── icon button ───────────────────────────────────────────────
 
@@ -168,6 +172,15 @@ function findParentId(
   return undefined;
 }
 
+/** id가 가리키는 항목이 속한 최상위 항목의 id (자기 자신이 최상위면 자기 id). */
+function topLevelAncestorId(tree: BookmarkItem[], id: string): string | null {
+  for (const item of tree) {
+    if (item.id === id) return item.id;
+    if (item.type === "folder" && findItem(item.children, id)) return item.id;
+  }
+  return null;
+}
+
 function isDescendant(tree: BookmarkItem[], sourceId: string, targetId: string): boolean {
   const source = findItem(tree, sourceId);
   if (!source || source.type !== "folder") return false;
@@ -228,6 +241,8 @@ export default function App() {
   const { data, save } = useBookmarks();
   const [modal, setModal] = useState<ModalConfig | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [overCol, setOverCol] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BookmarkItem | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
@@ -281,6 +296,7 @@ export default function App() {
       if (modal.mode === "add-folder") {
         nextTree = addToTree(data.tree, modal.parentId, {
           id: `folder-${makeId()}`, type: "folder", name, isOpen: true, children: [], textColor, bgColor, fontWeight, fontSize,
+          ...(modal.parentId === null && { column: lightestColumn(data.tree) }),
         });
       } else if (modal.mode === "add-link") {
         nextTree = addToTree(data.tree, modal.parentId, {
@@ -305,9 +321,18 @@ export default function App() {
   );
 
   const handleDelete = useCallback(
-    (id: string) => save(deleteFromTree(data.tree, id)),
-    [data, save]
+    (id: string) => {
+      const item = findItem(data.tree, id);
+      if (item) setDeleteTarget(item);
+    },
+    [data]
   );
+
+  const confirmDelete = useCallback(() => {
+    if (!deleteTarget) return;
+    save(deleteFromTree(data.tree, deleteTarget.id));
+    setDeleteTarget(null);
+  }, [data, deleteTarget, save]);
 
   const handlePin = useCallback(
     (id: string) => {
@@ -318,31 +343,80 @@ export default function App() {
     [data, save]
   );
 
+  const isTopFolder = useCallback(
+    (id: string) => data.tree.some((i) => i.type === "folder" && i.id === id),
+    [data]
+  );
+
+  // 컬럼을 끌 때는 포인터가 있는 곳을 우선 대상으로 삼는다 (빈 열·열 아래 빈 공간에도 놓을 수 있게).
+  const collisionDetection = useCallback<CollisionDetection>(
+    (args) => {
+      if (isTopFolder(args.active.id as string)) {
+        const hits = pointerWithin(args);
+        if (hits.length > 0) return hits;
+      }
+      return closestCenter(args);
+    },
+    [isTopFolder]
+  );
+
   const handleDragStart = useCallback(({ active }: DragStartEvent) => {
     setActiveId(active.id as string);
   }, []);
+
+  const handleDragOver = useCallback(
+    ({ active, over }: DragOverEvent) => {
+      const activeKey = active.id as string;
+      if (!over || !isTopFolder(activeKey)) return setOverCol(null);
+      const overKey = over.id as string;
+      const colFromDrop = parseColumnDropId(overKey);
+      if (colFromDrop !== null) return setOverCol(colFromDrop);
+      const anchor = findItem(data.tree, topLevelAncestorId(data.tree, overKey) ?? "");
+      setOverCol(anchor?.type === "folder" ? (anchor.column ?? null) : null);
+    },
+    [data, isTopFolder]
+  );
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
       setActiveId(null);
+      setOverCol(null);
       if (!over || active.id === over.id) return;
 
       const activeId = active.id as string;
       const overId = over.id as string;
+      const overColumn = parseColumnDropId(overId);
 
-      // 최상위 컬럼 재정렬 (핀 고정된 컬럼은 제외)
-      const topIds = data.tree.filter((i) => i.type === "folder").map((i) => i.id);
-      if (topIds.includes(activeId)) {
+      // 최상위 컬럼 이동: 다른 열로 옮기거나 같은 열 안에서 순서 변경 (핀 고정된 컬럼은 제외)
+      if (isTopFolder(activeId)) {
         const activeFolder = findItem(data.tree, activeId) as BookmarkFolder;
-        const overFolder = findItem(data.tree, overId) as BookmarkFolder;
-        if (topIds.includes(overId) && !activeFolder?.pinned && !overFolder?.pinned) {
-          const oi = data.tree.findIndex((i) => i.id === activeId);
-          const ni = data.tree.findIndex((i) => i.id === overId);
-          save(arrayMove(data.tree, oi, ni));
+        if (activeFolder.pinned) return;
+        const rest = data.tree.filter((i) => i.id !== activeId);
+
+        // 열 아래 빈 공간 → 그 열의 맨 아래
+        if (overColumn !== null) {
+          save([...rest, { ...activeFolder, column: overColumn }]);
+          return;
         }
+
+        // 컬럼(또는 컬럼 안 항목) 위 → 대상 컬럼의 위/아래에 삽입
+        const anchorId = topLevelAncestorId(data.tree, overId);
+        const anchor = rest.find((i) => i.id === anchorId);
+        if (!anchor || anchor.type !== "folder" || anchor.pinned) return;
+
+        const anchorEl = document.querySelector(`[data-folder-id="${anchor.id}"]`);
+        const pointer = event.activatorEvent as PointerEvent;
+        const rect = anchorEl?.getBoundingClientRect();
+        const below = !!rect && pointer.clientY + event.delta.y > rect.top + rect.height / 2;
+
+        const at = rest.indexOf(anchor) + (below ? 1 : 0);
+        save([...rest.slice(0, at), { ...activeFolder, column: anchor.column }, ...rest.slice(at)]);
         return;
       }
+
+      // 컬럼 아래 빈 공간은 컬럼끼리의 이동에만 쓴다 (그 외 항목은 여기서 사라지지 않게 무시)
+      if (overColumn !== null) return;
 
       // 자신의 하위로 드롭 방지
       if (isDescendant(data.tree, activeId, overId)) return;
@@ -371,7 +445,7 @@ export default function App() {
         save(insertBefore(without, overId, item));
       }
     },
-    [data, save]
+    [data, save, isTopFolder]
   );
 
   const folders = data.tree.filter((i) => i.type === "folder") as BookmarkFolder[];
@@ -397,33 +471,38 @@ export default function App() {
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveId(null)}
+        onDragCancel={() => { setActiveId(null); setOverCol(null); }}
       >
-        <SortableContext items={folders.map((f) => f.id)} strategy={rectSortingStrategy}>
-          <div className="flex">
-            {[0, 1, 2].map((colIdx) => (
-              <div key={colIdx} className="flex-1 min-w-0 flex flex-col px-3 border-r border-slate-200 last:border-r-0">
-                {folders
-                  .filter((_, i) => i % 3 === colIdx)
-                  .map((folder) => (
-                    <FolderColumn
-                      key={folder.id}
-                      item={folder}
-                      onToggle={handleToggle}
-                      onAddFolder={(parentId) => setModal({ mode: "add-folder", parentId, bgColor: randomFolderBg() })}
-                      onAddLink={(parentId) => setModal({ mode: "add-link", parentId })}
-                      onEdit={(i) => setModal(toEditModal(i))}
-                      onDelete={handleDelete}
-                      onPin={handlePin}
-                    />
-                  ))}
-              </div>
-            ))}
-          </div>
-        </SortableContext>
+        <div className="flex">
+          {Array.from({ length: COLUMN_COUNT }, (_, colIdx) => {
+            const colFolders = folders.filter((f) => f.column === colIdx);
+            return (
+              <BoardColumn
+                key={colIdx}
+                index={colIdx}
+                itemIds={colFolders.map((f) => f.id)}
+                isDropTarget={overCol === colIdx && !!activeItem && isTopFolder(activeItem.id)}
+              >
+                {colFolders.map((folder) => (
+                  <FolderColumn
+                    key={folder.id}
+                    item={folder}
+                    onToggle={handleToggle}
+                    onAddFolder={(parentId) => setModal({ mode: "add-folder", parentId, bgColor: randomFolderBg() })}
+                    onAddLink={(parentId) => setModal({ mode: "add-link", parentId })}
+                    onEdit={(i) => setModal(toEditModal(i))}
+                    onDelete={handleDelete}
+                    onPin={handlePin}
+                  />
+                ))}
+              </BoardColumn>
+            );
+          })}
+        </div>
 
         {rootLinks.length > 0 && (
           <div className="mt-6 flex flex-wrap gap-1">
@@ -450,6 +529,15 @@ export default function App() {
 
       {modal && (
         <ItemModal config={modal} onConfirm={handleModalConfirm} onClose={() => setModal(null)} />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          name={deleteTarget.name}
+          isFolder={deleteTarget.type === "folder"}
+          onConfirm={confirmDelete}
+          onClose={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

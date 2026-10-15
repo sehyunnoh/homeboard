@@ -31,21 +31,26 @@ export function FolderColumn({ item, onToggle, onAddFolder, onAddLink, onEdit, o
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex flex-col">
-      <div className="flex items-center gap-1 group">
-        {/* 드래그 핸들: 핀 고정 시 숨김 */}
-        <span
-          {...attributes}
-          {...(item.pinned ? {} : listeners)}
-          className={`select-none px-1 transition-opacity text-slate-300 hover:text-slate-500 ${
-            item.pinned
-              ? "invisible"
-              : "opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing"
-          }`}
-          title="Drag to reorder"
-        >
-          ⠿
-        </span>
+    <div ref={setNodeRef} style={style} data-folder-id={item.id} className="flex flex-col">
+      {/* 헤더 어디서나 드래그 가능 (클릭은 토글, 5px 이상 움직이면 드래그). 핀 고정 시 비활성 */}
+      <div
+        {...(item.pinned ? {} : listeners)}
+        className="flex items-center gap-1 group"
+      >
+        {/* 드래그 핸들: 항상 표시. 핀 고정 시 자물쇠 */}
+        {item.pinned ? (
+          <span className="select-none px-1 text-xs text-slate-300" title="고정됨 — 핀을 해제하면 이동할 수 있어요">
+            🔒
+          </span>
+        ) : (
+          <span
+            {...attributes}
+            className="select-none px-1 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing"
+            title="드래그해서 순서 변경"
+          >
+            ⠿
+          </span>
+        )}
         <button
           onClick={() => onToggle(item.id)}
           className="cursor-pointer text-sm font-semibold text-slate-700 flex-1 min-w-0 text-left flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-slate-200 hover:text-slate-900 transition-colors"
@@ -57,6 +62,7 @@ export function FolderColumn({ item, onToggle, onAddFolder, onAddLink, onEdit, o
 
         {/* 핀 버튼: 고정 시 항상 표시, 아닐 때 hover 시 표시 */}
         <button
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={() => onPin(item.id)}
           title={item.pinned ? "Unpin" : "Pin"}
           className={`p-1 rounded text-xs transition-colors ${
@@ -68,7 +74,10 @@ export function FolderColumn({ item, onToggle, onAddFolder, onAddLink, onEdit, o
           <PinIcon filled={!!item.pinned} />
         </button>
 
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div
+          onPointerDown={(e) => e.stopPropagation()}
+          className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
           <button onClick={() => onAddFolder(item.id)} title="Add Folder" className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs">📁</button>
           <button onClick={() => onAddLink(item.id)} title="Add Link" className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs">🔗</button>
           <button onClick={() => onEdit(item)} title="Edit" className="p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs">✏️</button>
